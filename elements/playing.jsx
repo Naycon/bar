@@ -1,7 +1,10 @@
-import { element } from '../lib/style.js';
+import { element, theme } from '../lib/style.js';
 
-const render = ({ config, output, error, data }) => {
-  var style = (song) => {
+let lastPlaying = ''
+let timeout = null
+
+const render = ({ config, error, data }) => {
+  const style = (song, top) => {
     if (song) {
       return {
         ...element,
@@ -9,28 +12,55 @@ const render = ({ config, output, error, data }) => {
         width: '100%',
         textAlign: 'center',
         position: 'fixed',
-        top: '0',
+        top: top,
         left: '0',
-        width: '100%'
+        width: '100%',
+        background: theme.background,
+        transition: 'top 250ms cubic-bezier(0.4, 0.0, 1, 1)'
       }
     } else {
       return { display: 'none' }
     }
   }
 
-  var iconStyle = {
+  const iconStyle = {
     color: '#1fd662',
     padding: '0 10px'
   }
 
-  return error ? (
-    <span style={style("err")}>!</span>
-  ) : (
-    <span style={style(data)}>
+  const renderElement = (top) => (
+    <span style={style(data, top)}>
       <i className="fab fa-spotify" style={iconStyle}></i>
       { data }
     </span>
   )
+
+  if (!data) {
+    lastPlaying = ''
+
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = null
+    }
+
+    return renderElement('-25px')
+  }
+
+  if (lastPlaying === data && !timeout) {
+    return renderElement('-25px')
+  }
+
+  lastPlaying = data
+
+  if (!timeout) {
+    timeout = setTimeout(() => {
+      timeout = null
+    }, 10000)
+  }
+
+  return error ? (
+    <span style={style("err")}>!</span>
+  ) : renderElement('0')
 }
 
 export default render

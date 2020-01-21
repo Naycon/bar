@@ -13,14 +13,16 @@ import {
 
 const config = {
   time: {
-    format: "%l:%M",
+    format: "%H:%M",
     style: {
-      padding: '0 15px',
-      backgroundColor: theme.backgroundLight,
+      padding: '0 15px 0 0',
+      backgroundColor: theme.background,
     }
   },
   battery: {
-    style: {}
+    style: {
+      backgroundColor: theme.background,
+    }
   },
   workspaces: {
     style: {}
@@ -38,13 +40,12 @@ const barStyle = {
   right: 0,
   left: 0,
   position: 'fixed',
-  background: theme.background,
+  background: 'rgba(0,0,0,0)', //theme.background,
   overflow: 'hidden',
   color: theme.text,
   height: '25px',
   fontFamily: 'Helvetica',
-  fontSize: '.9rem',
-  boxShadow: '0px 2px 5px 0 #000000',
+  fontSize: '.9rem'
 }
 
 
@@ -59,14 +60,14 @@ const result = (data, key) => {
 // export const command = 'sh bar/scripts/update'
 export const command = `
 BAT=$(pmset -g batt | egrep '([0-9]+\%).*' -o --colour=auto | cut -f1 -d';');
-SPACE=$(if command -v /usr/local/bin/chunkc >/dev/null 2>&1; then echo $(/usr/local/bin/chunkc tiling::query -d id); else echo ""; fi)
+SPACE=$(if command -v /usr/local/bin/yabai >/dev/null 2>&1; then echo $(/usr/local/bin/yabai -m query --spaces); else echo ""; fi)
 SPOTIFY=$(osascript -e 'tell application "System Events"set processList to (name of every process)end tellif (processList contains "Spotify") is true thentell application "Spotify"if player state is playing thenset artistName to artist of current trackset trackName to name of current trackreturn artistName & " - " & trackNameelsereturn ""end ifend tellend if')
 
 
 echo $(cat <<-EOF
   {
     "battery": "$BAT",
-    "workspace": "$SPACE",
+    "workspace": $SPACE,
     "playing": "$SPOTIFY"
   }
 EOF
@@ -82,15 +83,22 @@ export const render = ({ output, error }) => {
   let errorContent = (
     <div style={barStyle}></div>
   )
+  let allData
+  try {
+    allData = output ? JSON.parse(output) : {}
+  } catch(e) {
+    allData = {}
+  }
+
   let content = (
     <div style={barStyle}>
       <link rel="stylesheet" type="text/css" href="bar/assets/font-awesome/css/all.min.css" />
-      <Workspaces config={config.workspaces} data={result(output, "workspace")} side="left" />
+      <Workspaces config={config.workspaces} data={allData.workspace} side="left" />
 
-      <Playing config={config.playing} data={result(output, "playing")} />
+      <Playing config={config.playing} data={allData.playing} />
 
       <Time config={config.time} side="right"></Time>
-      <Battery config={config.battery} data={result(output, "battery")} side="right" />
+      <Battery config={config.battery} data={allData.battery} side="right" />
     </div>
   )
   return error ? errorContent : content

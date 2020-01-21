@@ -1,7 +1,7 @@
 import strftime from '../lib/strftime.js';
-import { element, theme } from '../lib/style.js';
+import { element } from '../lib/style.js';
 
-const render = ({ config, output, error, side, theme }) => {
+const render = ({ config, error, side }) => {
   let time = strftime(config.format, new Date());
   var style = {
     ...element,
@@ -14,7 +14,6 @@ const render = ({ config, output, error, side, theme }) => {
   ) : (
     <span style={style}>
       {time}
-      <i className="far fa-clock" style={{padding: '0 0 0 10px'}}></i>
     </span>
   )
 }

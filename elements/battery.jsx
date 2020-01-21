@@ -1,16 +1,16 @@
-import { element } from '../lib/style.js';
+import { element, theme } from '../lib/style.js';
 
 const render = ({ output, error, side, config, data }) => {
   var batColor = (level) => {
     var level = parseInt(level)
 
     if (level > 80)
-      return "#97c475"; // Green
+      return theme.batteryFull
     else if (level > 55)
-      return "#e5c07b"; // Yellow
+      return theme.batteryMedium
     else if (level > 30)
-      return "#d09a6a"; // Orange
-    return "#e06c75";   // Red
+      return theme.batteryLow
+    return theme.batteryEmpty
   }
 
   var style = (level) => {
@@ -18,7 +18,8 @@ const render = ({ output, error, side, config, data }) => {
       ...element,
       ...config.style,
       float: side,
-      color: batColor(level)
+      color: batColor(level),
+      borderRadius: '0 0 0 5px'
     }
   }
 
@@ -40,14 +41,21 @@ const render = ({ output, error, side, config, data }) => {
     return "battery-empty"
   }
 
-  return error || data == 0 ? (
-    <span style={style(0)}></span>
-  ) : (
+  if (error || data == 0) {
+    return (
+      <span style={style(0)}></span>
+    )
+  }
+
+  return (
     <span style={style(data)}>
-      <span>{data}</span>
-      <span style={iconStyle}>
-        <i className={'far fa-' + iconName(data)}></i>
-      </span>
+      { data < 50 ? (
+        <span>{data}</span>
+      ) : (
+        <span style={iconStyle}>
+          <i className={'far fa-' + iconName(data)}></i>
+        </span>
+      ) }
     </span>
   )
 }
